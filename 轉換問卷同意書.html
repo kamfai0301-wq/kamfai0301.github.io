@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>亨達金銀投資有限公司 - 金易通平台退場確認</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "微軟正黑體", Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 700px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            padding: 30px 25px;
+        }
+        .logo { text-align: center; margin-bottom: 20px; }
+        .logo h1 { color: #1a3c6e; font-size: 22px; margin-top: 8px; }
+        .divider { border-top: 2px solid #1a3c6e; margin: 20px 0; }
+        .intro { background: #f0f4fc; padding: 15px; border-radius: 6px; margin-bottom: 25px; font-size: 14px; color: #444; }
+        .step-title { font-size: 17px; font-weight: bold; color: #1a3c6e; margin-bottom: 12px; }
+        .question-block { margin-bottom: 25px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 6px; display: none; }
+        .question-block.active { display: block; }
+        .input-group { margin: 10px 0; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 14px; }
+        .input-group input { width: 100%; padding: 10px; border: 1.5px solid #ccc; border-radius: 6px; font-size: 14px; }
+        .input-group input:focus { border-color: #1a3c6e; outline: none; }
+        .option-group { margin: 12px 0; }
+        .option-group label { display: flex; align-items: flex-start; padding: 10px 14px; margin: 6px 0; border: 1.5px solid #ccc; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .option-group label:hover { border-color: #1a3c6e; background: #f8faff; }
+        .option-group input[type="radio"] { margin-right: 10px; margin-top: 3px; accent-color: #1a3c6e; width: 16px; height: 16px; flex-shrink: 0; }
+        .agreement-box { background: #fffdf5; border: 1px solid #e0d8b0; padding: 15px; border-radius: 6px; font-size: 13px; color: #555; max-height: 200px; overflow-y: auto; margin: 12px 0; }
+        .agreement-box h4 { color: #1a3c6e; margin-bottom: 8px; }
+        .btn { display: inline-block; padding: 10px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; margin: 5px; }
+        .btn-primary { background: #1a3c6e; color: #fff; }
+        .btn-primary:hover { background: #0f2b52; }
+        .btn-outline { background: #fff; color: #1a3c6e; border: 1px solid #1a3c6e; }
+        .btn-outline:hover { background: #f0f4fc; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .footer-info { background: #f9f9f9; padding: 15px; border-radius: 6px; font-size: 13px; color: #666; margin-top: 20px; text-align: center; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: #fff; border-radius: 8px; padding: 25px; max-width: 450px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .modal-box h3 { color: #1a3c6e; margin-bottom: 10px; }
+        .modal-box p { font-size: 14px; color: #555; margin-bottom: 15px; }
+        .step-indicator { display: flex; justify-content: center; margin-bottom: 20px; }
+        .step-dot { width: 12px; height: 12px; border-radius: 50%; background: #ccc; margin: 0 6px; }
+        .step-dot.done { background: #1a3c6e; }
+        .step-dot.current { background: #1a3c6e; box-shadow: 0 0 0 4px rgba(26,60,110,0.2); }
+        .error-msg { color: #d93025; font-size: 13px; margin-top: 4px; display: none; }
+        @media (max-width: 500px) {
+            .container { margin: 10px; padding: 18px 15px; }
+            .logo h1 { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="logo">
+        <h1>亨達金銀投資有限公司</h1>
+        <p style="color:#666; font-size:14px;">金易通平台退場 · MT4 賬戶遷移確認</p>
+    </div>
+    <div class="divider"></div>
+
+    <div class="intro">
+        <strong>尊敬的客戶：</strong><br>
+        您現正使用的「金易通」平台即將停止服務，我們將為您全面升級至 MT4 平台。為確保您的交易不受影響，請於 <strong>[截止日期]</strong> 前完成以下確認。<br><br>
+        ⚠️ 如逾期未回覆，我們將默認按<strong>「不同意遷移倉位」</strong>處理，並於當日收市後以收市價為您平倉。
+    </div>
+
+    <div class="step-indicator">
+        <div class="step-dot current" id="dot0"></div>
+        <div class="step-dot" id="dot1"></div>
+        <div class="step-dot" id="dot2"></div>
+        <div class="step-dot" id="dot3"></div>
+    </div>
+
+    <!-- ========== 步驟零：輸入個人資料 ========== -->
+    <div class="question-block active" id="q0">
+        <div class="step-title">請輸入您的資料</div>
+        <p style="font-size:14px; margin-bottom:10px;">請填寫以下資料以確認您的身份：<span style="color:red;">*</span></p>
+        <div class="input-group">
+            <label>交易賬號</label>
+            <input type="text" id="input_account" placeholder="請輸入您的交易賬號">
+            <div class="error-msg" id="error_account">請輸入交易賬號</div>
+        </div>
+        <div class="input-group">
+            <label>姓名</label>
+            <input type="text" id="input_name" placeholder="請輸入您的姓名">
+            <div class="error-msg" id="error_name">請輸入姓名</div>
+        </div>
+        <div class="input-group">
+            <label>身份證號</label>
+            <input type="text" id="input_id" placeholder="請輸入您的身份證號碼">
+            <div class="error-msg" id="error_id">請輸入身份證號碼</div>
+        </div>
+        <div style="margin-top:12px;">
+            <button class="btn btn-primary" id="btn_q0_next">下一步</button>
+        </div>
+    </div>
+
+    <!-- ========== 第一部分：MT4 新開戶確認 ========== -->
+    <div class="question-block" id="q1">
+        <div class="step-title">第一步：MT4 新開戶確認</div>
+        <p style="font-size:14px; margin-bottom:10px;"><strong>1. 請問您是否同意為您開立全新的 MT4 交易賬戶？</strong> <span style="color:red;">*</span></p>
+        <div class="option-group" id="q1_options">
+            <label><input type="radio" name="q1" value="同意開立MT4"> ✅ 同意 —— 我們將為您開立全新 MT4 賬戶，並將賬戶資料發送給您。</label>
+            <label><input type="radio" name="q1" value="不同意開立MT4"> ❌ 不同意 —— 您將無法繼續使用我們的交易服務。</label>
+        </div>
+        <div id="q1_disagree_msg" style="display:none; background:#fff3f3; padding:12px; border-radius:6px; margin-top:10px; font-size:13px; color:#a94442;">
+            感謝您的回覆。如您日後有需要，歡迎隨時聯絡我們重新開立賬戶。金易通平台將於<strong>[日期]</strong>正式關閉，屆時您的賬戶將被終止。
+        </div>
+        <div style="margin-top:12px;">
+            <button class="btn btn-outline" id="btn_q1_back">返回上一步</button>
+            <button class="btn btn-primary" id="btn_q1_next" disabled>下一步</button>
+        </div>
+    </div>
+
+    <!-- ========== 第二部分：倉位處理確認 ========== -->
+    <div class="question-block" id="q2">
+        <div class="step-title">第二步：倉位處理確認</div>
+        <p style="font-size:14px; margin-bottom:10px;"><strong>2. 您現有金易通賬戶內的持倉倉位，請問如何處理？</strong> <span style="color:red;">*</span></p>
+        <div class="option-group" id="q2_options">
+            <label><input type="radio" name="q2" value="保留原有倉位"> 📦 保留原有倉位 —— 我們將於指定日期，把您的倉位、資金及交易紀錄完整遷移至您的新 MT4 賬戶。</label>
+            <label><input type="radio" name="q2" value="不保留原有倉位"> 📭 不保留原有倉位 —— 我們將於指定日期，按當天收市價為您平倉所有持倉，並將剩餘資金轉入您的新 MT4 賬戶。</label>
+        </div>
+        <div id="q2_not_keep_confirm" style="display:none; background:#fffdf5; padding:12px; border-radius:6px; margin-top:10px; font-size:13px;">
+            <strong>請確認：</strong> 您已選擇不保留倉位。我們將於<strong>[日期]</strong>收市後，按當天收市價為您平倉所有持倉，並將剩餘資金自動轉入您的新 MT4 賬戶。<br><br>
+            <label style="cursor:pointer;"><input type="checkbox" id="confirm_not_keep"> 我已了解並同意上述安排。</label>
+        </div>
+        <div style="margin-top:12px;">
+            <button class="btn btn-outline" id="btn_q2_back">返回上一步</button>
+            <button class="btn btn-primary" id="btn_q2_next" disabled>下一步</button>
+        </div>
+    </div>
+
+    <!-- ========== 第三部分：搬遷協議 ========== -->
+    <div class="question-block" id="q3">
+        <div class="step-title">第三步：搬遷協議</div>
+        <p style="font-size:14px; margin-bottom:10px;"><strong>倉位遷移協議</strong></p>
+        <div class="agreement-box">
+            <h4>甲方：亨達金銀投資有限公司</h4>
+            <h4>乙方：<span id="client_name_display">[客戶姓名]</span></h4>
+            <p>雙方就金易通賬戶遷移至 MT4 平台一事，達成以下共識：</p>
+            <ol style="padding-left:18px;">
+                <li>甲方將於 <strong>[日期]</strong> 將乙方金易通賬戶內的所有資金、持倉倉位及交易紀錄，完整遷移至乙方指定的新 MT4 賬戶。</li>
+                <li>乙方知悉並同意，所有於金易通平台設置的<strong>止損、止盈及限價掛單將不會被遷移</strong>。乙方須於遷移完成後，自行登入 MT4 平台重新設置相關掛單。</li>
+                <li>遷移期間，因市場價格波動導致的盈虧變化，屬正常市場風險，由乙方自行承擔。</li>
+                <li>甲方將按原開倉價格遷移倉位，遷移操作本身不產生任何交易盈虧。</li>
+            </ol>
+        </div>
+        <p style="font-size:14px; margin-top:12px;"><strong>3. 請確認您已閱讀並同意以上協議內容：</strong> <span style="color:red;">*</span></p>
+        <div class="option-group" id="q3_options">
+            <label><input type="radio" name="q3" value="同意協議"> ✅ 我已詳細閱讀並同意以上所有條款，同意將倉位遷移至 MT4 平台。</label>
+            <label><input type="radio" name="q3" value="不同意協議"> ❌ 我不同意以上條款 —— 我們將按當天收市價為您平倉所有持倉。</label>
+        </div>
+        <div style="margin-top:12px;">
+            <button class="btn btn-outline" id="btn_q3_back">返回上一步</button>
+            <button class="btn btn-primary" id="btn_submit" disabled>提交確認</button>
+        </div>
+    </div>
+
+    <div class="footer-info">
+        <strong>如有任何疑問，歡迎聯絡我們的客服團隊</strong><br>
+        中國專線：400 8423 622 &nbsp;|&nbsp; 台灣專線：008 0149 2096<br>
+        電郵：csd@hantec.com<br>
+        <span style="font-size:11px;">亨達金銀投資有限公司 謹啟</span>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+    <div class="modal-box">
+        <h3 id="modal_title"></h3>
+        <p id="modal_msg"></p>
+        <button class="btn btn-primary" id="modal_close">確定</button>
+    </div>
+</div>
+
+<script>
+    // --- 將呢個 URL 替換成你喺 Apps Script 部署後得到嘅 Web App URL ---
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyoBKSU8oZ6RcDGgo1LVMhyhEfliUippMbouyLSToX-6mNZTyS8ac1U49yQF7TVCGBG/exec';
+
+    const q0 = document.getElementById('q0');
+    const q1 = document.getElementById('q1');
+    const q2 = document.getElementById('q2');
+    const q3 = document.getElementById('q3');
+    const dot0 = document.getElementById('dot0');
+    const dot1 = document.getElementById('dot1');
+    const dot2 = document.getElementById('dot2');
+    const dot3 = document.getElementById('dot3');
+    const input_account = document.getElementById('input_account');
+    const input_name = document.getElementById('input_name');
+    const input_id = document.getElementById('input_id');
+    const error_account = document.getElementById('error_account');
+    const error_name = document.getElementById('error_name');
+    const error_id = document.getElementById('error_id');
+    const btn_q0_next = document.getElementById('btn_q0_next');
+    const btn_q1_next = document.getElementById('btn_q1_next');
+    const btn_q1_back = document.getElementById('btn_q1_back');
+    const btn_q2_next = document.getElementById('btn_q2_next');
+    const btn_q2_back = document.getElementById('btn_q2_back');
+    const btn_q3_back = document.getElementById('btn_q3_back');
+    const btn_submit = document.getElementById('btn_submit');
+    const q1_disagree_msg = document.getElementById('q1_disagree_msg');
+    const q2_not_keep_confirm = document.getElementById('q2_not_keep_confirm');
+    const confirm_not_keep = document.getElementById('confirm_not_keep');
+    const modal = document.getElementById('modal');
+    const modal_title = document.getElementById('modal_title');
+    const modal_msg = document.getElementById('modal_msg');
+    const modal_close = document.getElementById('modal_close');
+
+    let selectedQ1 = null;
+    let selectedQ2 = null;
+    let selectedQ3 = null;
+    let accountNumber = '';
+    let clientName = '';
+    let clientId = '';
+
+    // --- 從 URL 參數預填賬號 ---
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('account')) {
+        input_account.value = urlParams.get('account');
+    }
+
+    function showModal(title, msg, callback) {
+        modal_title.innerText = title;
+        modal_msg.innerText = msg;
+        modal.classList.add('show');
+        modal_close.onclick = function() {
+            modal.classList.remove('show');
+            if (callback) callback();
+        };
+    }
+
+    // --- 修正：確保數據傳送嘅格式同 Apps Script 一致 ---
+    function sendDataToSheet(data) {
+        if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL') {
+            console.warn('請先設定 Google Apps Script URL');
+            return Promise.resolve();
+        }
+        const payload = {
+            account: data.account || '',
+            name: data.name || '',
+            id: data.id || '',
+            q1: data.q1 || '',
+            q2: data.q2 || '',
+            q3: data.q3 || ''
+        };
+        console.log('Sending data:', payload);
+        return fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).catch(error => console.error('提交失敗:', error));
+    }
+
+    function showStep(step) {
+        q0.classList.remove('active'); q1.classList.remove('active'); q2.classList.remove('active'); q3.classList.remove('active');
+        dot0.classList.remove('current','done'); dot1.classList.remove('current','done'); dot2.classList.remove('current','done'); dot3.classList.remove('current','done');
+        if (step === 0) { q0.classList.add('active'); dot0.classList.add('current'); }
+        else if (step === 1) { q1.classList.add('active'); dot0.classList.add('done'); dot1.classList.add('current'); }
+        else if (step === 2) { q2.classList.add('active'); dot0.classList.add('done'); dot1.classList.add('done'); dot2.classList.add('current'); }
+        else if (step === 3) { q3.classList.add('active'); dot0.classList.add('done'); dot1.classList.add('done'); dot2.classList.add('done'); dot3.classList.add('current'); }
+    }
+
+    // --- 步驟零：驗證輸入 ---
+    btn_q0_next.addEventListener('click', function() {
+        let isValid = true;
+        error_account.style.display = 'none';
+        error_name.style.display = 'none';
+        error_id.style.display = 'none';
+
+        if (!input_account.value.trim()) {
+            error_account.style.display = 'block';
+            isValid = false;
+        }
+        if (!input_name.value.trim()) {
+            error_name.style.display = 'block';
+            isValid = false;
+        }
+        if (!input_id.value.trim()) {
+            error_id.style.display = 'block';
+            isValid = false;
+        }
+
+        if (isValid) {
+            accountNumber = input_account.value.trim();
+            clientName = input_name.value.trim();
+            clientId = input_id.value.trim();
+            document.getElementById('client_name_display').innerText = clientName;
+            showStep(1);
+        }
+    });
+
+    function updateQ1NextButton() {
+        const sel = document.querySelector('input[name="q1"]:checked');
+        btn_q1_next.disabled = !sel;
+        if (sel) selectedQ1 = sel.value;
+        q1_disagree_msg.style.display = (sel && sel.value === '不同意開立MT4') ? 'block' : 'none';
+    }
+
+    function updateQ2NextButton() {
+        const sel = document.querySelector('input[name="q2"]:checked');
+        if (sel) selectedQ2 = sel.value;
+        if (sel && sel.value === '不保留原有倉位') {
+            q2_not_keep_confirm.style.display = 'block';
+            btn_q2_next.disabled = !confirm_not_keep.checked;
+        } else if (sel && sel.value === '保留原有倉位') {
+            q2_not_keep_confirm.style.display = 'none';
+            confirm_not_keep.checked = false;
+            btn_q2_next.disabled = false;
+        } else {
+            q2_not_keep_confirm.style.display = 'none';
+            confirm_not_keep.checked = false;
+            btn_q2_next.disabled = true;
+        }
+    }
+
+    function updateQ3SubmitButton() {
+        const sel = document.querySelector('input[name="q3"]:checked');
+        btn_submit.disabled = !sel;
+        if (sel) selectedQ3 = sel.value;
+    }
+
+    document.querySelectorAll('input[name="q1"]').forEach(r => r.addEventListener('change', updateQ1NextButton));
+    document.querySelectorAll('input[name="q2"]').forEach(r => r.addEventListener('change', updateQ2NextButton));
+    document.querySelectorAll('input[name="q3"]').forEach(r => r.addEventListener('change', updateQ3SubmitButton));
+    confirm_not_keep.addEventListener('change', updateQ2NextButton);
+
+    btn_q1_back.addEventListener('click', function() { showStep(0); });
+
+    btn_q1_next.addEventListener('click', function() {
+        if (selectedQ1 === '不同意開立MT4') {
+            sendDataToSheet({ account: accountNumber, name: clientName, id: clientId, q1: '不同意開立MT4', q2: 'N/A', q3: 'N/A' });
+            showModal('感謝您的回覆', '您的選擇已記錄。如您日後有需要，歡迎隨時聯絡我們重新開立賬戶。金易通平台將於[日期]正式關閉，屆時您的賬戶將被終止。');
+        } else if (selectedQ1 === '同意開立MT4') {
+            showStep(2);
+        }
+    });
+
+    btn_q2_back.addEventListener('click', function() { showStep(1); });
+
+    btn_q2_next.addEventListener('click', function() {
+        if (selectedQ2 === '保留原有倉位') {
+            showStep(3);
+        } else if (selectedQ2 === '不保留原有倉位') {
+            if (confirm_not_keep.checked) {
+                sendDataToSheet({ account: accountNumber, name: clientName, id: clientId, q1: '同意開立MT4', q2: '不保留原有倉位', q3: 'N/A' });
+                showModal('感謝您的確認', '您的選擇已記錄。我們將於[日期]收市後，按當天收市價為您平倉所有持倉，並將剩餘資金自動轉入您的新 MT4 賬戶。');
+            }
+        }
+    });
+
+    btn_q3_back.addEventListener('click', function() { showStep(2); });
+
+    btn_submit.addEventListener('click', function() {
+        if (selectedQ3 === '同意協議') {
+            sendDataToSheet({ account: accountNumber, name: clientName, id: clientId, q1: '同意開立MT4', q2: '保留原有倉位', q3: '同意協議' });
+            showModal('感謝您的確認', '您的選擇已記錄。我們將於[日期]將您的倉位、資金及交易紀錄完整遷移至您的新 MT4 賬戶。新賬戶資料將提前發送給您。請注意：所有原有掛單將不會被遷移，請於遷移後自行重新設置。');
+        } else if (selectedQ3 === '不同意協議') {
+            sendDataToSheet({ account: accountNumber, name: clientName, id: clientId, q1: '同意開立MT4', q2: '保留原有倉位', q3: '不同意協議' });
+            showModal('感謝您的回覆', '您的選擇已記錄。我們將於[日期]收市後，按當天收市價為您平倉所有持倉，並將剩餘資金轉入您的新 MT4 賬戶。');
+        }
+    });
+</script>
+
+</body>
+</html>
