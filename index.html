@@ -104,6 +104,7 @@ button:disabled{opacity:.55;cursor:wait}
     • 如果地址沒有足夠線索判斷省份，工具會標示「未能判斷」，不會亂猜。<br>
     • 工具會清除地址內所有空格，並將國家名稱統一為一個「中國」。<br>
     • 勾選「移除換行符號」會把輸入中的所有換行清除後再處理。<br>
+    • 已修正簡體省份重複補上的問題。<br>
     • 自動翻譯屬機器翻譯，正式寄送或作合規文件前請核對英文地名。
   </section>
 </main>
@@ -246,12 +247,24 @@ function detectProvince(s) {
 function normalize(raw) {
   let s = compact(raw);
   if (!s) return { base: "", province: "", status: "空白地址" };
+
   const province = detectProvince(s);
-  if (province && $("addProvince").checked && !provinceAliases.some(([p]) => s.includes(p))) {
+
+  // 修正：同時檢查繁體名稱與所有簡體／繁體別名，避免重複補上省份
+  const alreadyHasProvince = province && provinceAliases.some(([p, aliases]) => {
+    if (p === province) {
+      return s.includes(p) || aliases.some(a => s.includes(a));
+    }
+    return false;
+  });
+
+  if (province && $("addProvince").checked && !alreadyHasProvince) {
     s = province + s;
   }
+
   if ($("addCountry").checked) s = "中国" + s;
   else s = stripCountry(s);
+
   return {
     base: s,
     province: province || "未能判斷",
