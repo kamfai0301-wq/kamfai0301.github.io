@@ -71,7 +71,8 @@ button:disabled{opacity:.55;cursor:wait}
     <label for="input">輸入地址（一行一筆，可一次貼上多筆）</label>
     <textarea id="input" placeholder="例如：
 中国 山东省 招远市毕郭镇
-中國 山東省 招遠市畢郭鎮
+山东招远市
+广西 南宁市
 招远市毕郭镇"></textarea>
     <div class="options">
       <label><input type="checkbox" id="addCountry" checked> 缺少國家時補上「中國」</label>
@@ -100,12 +101,10 @@ button:disabled{opacity:.55;cursor:wait}
 
   <section class="card foot">
     <strong>地址補全規則</strong><br>
-    • 已內置常見省、市對照（含簡體與繁體）；例如識別到「招远市」或「招遠市」都會補上「山東省」。<br>
-    • 如果地址沒有足夠線索判斷省份，工具會標示「未能判斷」，不會亂猜。<br>
-    • 工具會清除地址內所有空格，並將國家名稱統一為一個「中國」。<br>
-    • 勾選「移除換行符號」會把輸入中的所有換行清除後再處理。<br>
-    • 已修正簡體省份重複補上的問題。<br>
-    • 自動翻譯屬機器翻譯，正式寄送或作合規文件前請核對英文地名。
+    • 簡稱（山東、广西等）會自動換成完整省份名稱，不會出現「山東省山東」這種重複。<br>
+    • 已有完整名稱時不會重複補上。<br>
+    • 勾選「移除換行符號」會清除所有換行。<br>
+    • 自動翻譯屬機器翻譯，正式使用前請核對。
   </section>
 </main>
 
@@ -115,7 +114,6 @@ let rows = [];
 let openccConverter = null;
 let pinyinReady = null;
 
-// ========== 簡繁轉換 ==========
 async function ensureOpenCC() {
   if (openccConverter) return openccConverter;
   if (window.OpenCC) {
@@ -141,7 +139,6 @@ function toTraditional(text) {
   return openccConverter ? openccConverter(text) : text;
 }
 
-// ========== 拼音 ==========
 async function ensurePinyin() {
   if (window.pinyinPro?.pinyin) return;
   if (pinyinReady) return pinyinReady;
@@ -155,7 +152,6 @@ async function ensurePinyin() {
   return pinyinReady;
 }
 
-// ========== 省份對照 ==========
 const provinceAliases = [
   ["北京市", ["北京", "北京市"]],
   ["天津市", ["天津", "天津市"]],
@@ -244,21 +240,36 @@ function detectProvince(s) {
   return "";
 }
 
+function hasFullProvince(s, province) {
+  if (!province) return false;
+  if (s.includes(province)) return true;
+  const entry = provinceAliases.find(([p]) => p === province);
+  if (!entry) return false;
+  const fullForms = entry[1].filter(a =>
+    a.includes("省") || a.includes("市") || a.includes("自治") || a.includes("特别") || a.includes("特別")
+  );
+  return fullForms.some(f => s.includes(f));
+}
+
 function normalize(raw) {
   let s = compact(raw);
   if (!s) return { base: "", province: "", status: "空白地址" };
 
   const province = detectProvince(s);
 
-  // 修正：同時檢查繁體名稱與所有簡體／繁體別名，避免重複補上省份
-  const alreadyHasProvince = province && provinceAliases.some(([p, aliases]) => {
-    if (p === province) {
-      return s.includes(p) || aliases.some(a => s.includes(a));
+  if (province && $("addProvince").checked && !hasFullProvince(s, province)) {
+    // 移除簡稱，避免補全稱後變成「山東省山東」
+    const entry = provinceAliases.find(([p]) => p === province);
+    if (entry) {
+      const shortForms = entry[1].filter(a =>
+        !a.includes("省") && !a.includes("市") && !a.includes("自治") && !a.includes("特别") && !a.includes("特別")
+      );
+      // 按長度由長到短排序，避免部分匹配問題
+      shortForms.sort((a, b) => b.length - a.length);
+      for (const short of shortForms) {
+        s = s.replace(short, "");
+      }
     }
-    return false;
-  });
-
-  if (province && $("addProvince").checked && !alreadyHasProvince) {
     s = province + s;
   }
 
@@ -309,26 +320,21 @@ window.copyOne = async (i, k) => {
   $("status").textContent = "已複製";
 };
 
-// ========== 姓名轉換 ==========
 $("convertNames").addEventListener("click", async () => {
   let raw = $("nameInput").value;
   if ($("nameRemoveNewlines").checked) raw = removeNewlines(raw);
-
   const names = raw.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
   if (!names.length) { $("nameStatus").textContent = "請先輸入姓名"; return; }
 
   $("convertNames").disabled = true;
   $("nameStatus").textContent = "正在轉換…";
-
   try {
     await ensureOpenCC();
     await ensurePinyin();
-
     const traditionalNames = names.map(n => toTraditional(n.replace(/[\s\u3000]+/g, "")));
     const pinyinNames = traditionalNames.map(n =>
       window.pinyinPro.pinyin(n, { toneType: "none", type: "array" }).join(" ").toUpperCase()
     );
-
     $("nameTraditional").textContent = traditionalNames.join("\n");
     $("namePinyin").textContent = pinyinNames.join("\n");
     $("nameResult").style.display = "";
@@ -363,32 +369,26 @@ $("copyNameBoth").addEventListener("click", async () => {
   $("nameStatus").textContent = "已複製姓名及拼音";
 });
 
-// ========== 地址整理 ==========
 $("run").addEventListener("click", async () => {
   let raw = $("input").value;
   if ($("removeNewlines").checked) raw = removeNewlines(raw);
-
   const lines = raw.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
   if (!lines.length) { $("status").textContent = "請先貼上地址"; return; }
 
   $("run").disabled = true;
   $("status").textContent = "正在整理…";
   rows = [];
-
   try {
     await ensureOpenCC();
-
     for (let i = 0; i < lines.length; i++) {
       const n = normalize(lines[i]);
       const tc = toTraditional(n.base);
       let en = "";
       let status = n.status;
-
       if ($("english").checked) {
         try { en = await translate(tc); }
         catch { status += "；英文翻譯失敗"; }
       }
-
       rows.push({ original: lines[i], tc, en, province: n.province, status });
       render();
       $("status").textContent = `已完成 ${i + 1}/${lines.length}`;
